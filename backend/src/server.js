@@ -152,7 +152,7 @@ if (process.env.NODE_ENV === "production") {
 // ✅ Socket.io setup
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: ["http://localhost:5173", "https://spektra-xu5b.onrender.com"], credentials: true },
+  cors: { origin: ["http://localhost:5173"], credentials: true },
 });
 
 io.on("connection", (socket) => {
