@@ -8,13 +8,12 @@
 
 import axios from "axios";
 
-// Use your .env value if available, fallback to localhost
 const BASE_URL =
   import.meta.env.MODE === "development"
-    ? import.meta.env.VITE_API_URL || "http://localhost:5001/api"
-    : import.meta.env.VITE_API_URL || "/api";
+    ? "http://localhost:5001/api"
+    : `${window.location.origin}/api`;
 
 export const axiosInstance = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // send cookies
+  withCredentials: true,
 });
