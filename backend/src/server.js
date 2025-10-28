@@ -117,7 +117,7 @@ const __dirname = path.resolve();
 app.use(cors({
   origin: [
     "http://localhost:5173",     // for local frontend
-    "https://yourdomain.com"     // for production
+    "https://spektra-xu5b.onrender.com"     // for production
   ],
   credentials: true, // allow cookies
 }));
