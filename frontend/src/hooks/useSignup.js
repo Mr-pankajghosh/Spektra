@@ -1,11 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+// import axios from "axios";
+
+// const requestOtp = async ({ email, fullName, password }) => {
+//   const res = await axios.post(
+//     `${import.meta.env.VITE_API_URL}/auth/request-otp`,
+//     { email, fullName, password }
+//   );
+//   return res.data;
+// };
+import { axiosInstance } from "../lib/api";
 
 const requestOtp = async ({ email, fullName, password }) => {
-  const res = await axios.post(
-    `${import.meta.env.VITE_API_URL}/api/auth/request-otp`,
-    { email, fullName, password }
-  );
+  const res = await axiosInstance.post("/auth/request-otp", {
+    email,
+    fullName,
+    password,
+  });
   return res.data;
 };
 
