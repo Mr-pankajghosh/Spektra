@@ -122,11 +122,13 @@
 // frontend/src/lib/api.js
 import axios from "axios";
 
-// ✅ Create a centralized Axios instance
+const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5001";
+
 export const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
-  withCredentials: true, // Send cookies (for JWT auth)
+  baseURL: `${baseURL}/api`,
+  withCredentials: true,
 });
+
 
 // ✅ Optional interceptor to handle expired sessions
 axiosInstance.interceptors.response.use(
