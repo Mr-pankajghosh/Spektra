@@ -17,12 +17,13 @@ import contestRoutes from "./routes/contest.route.js";
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// ✅ Allowed origins (local + production)
+// ✅ Allowed frontend origins (local + production)
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://spektra-two.vercel.app"
+  "https://spektra-two.vercel.app" // your deployed frontend
 ];
 
+// ✅ CORS setup
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -36,15 +37,17 @@ app.use(
   })
 );
 
+// ✅ Middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// ✅ Routes
+// ✅ Test route
 app.get("/", (req, res) => {
-  res.send("✅ API is working and connected to frontend!");
+  res.send("✅ Spektra API is running and connected to frontend!");
 });
 
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
@@ -53,7 +56,7 @@ app.use("/api/posts", postRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/contests", contestRoutes);
 
-// ✅ Socket.io setup
+// ✅ HTTP server + Socket.io
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -62,8 +65,9 @@ const io = new Server(server, {
   },
 });
 
+// ✅ WebSocket connection
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("🟢 User connected:", socket.id);
 
   socket.on("joinRoom", (communityId) => {
     socket.join(communityId);
@@ -80,7 +84,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("🔴 User disconnected:", socket.id);
   });
 });
 

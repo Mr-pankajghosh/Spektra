@@ -4,7 +4,10 @@ import Layout from "../components/Layout";
 import { axiosInstance } from "../lib/axios";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5001", { transports: ["websocket"] });
+const socket = io(import.meta.env.VITE_API_URL, {
+  withCredentials: true,
+  transports: ["websocket"],
+});
 
 const CommunityDetailsPage = () => {
   const { id } = useParams();
