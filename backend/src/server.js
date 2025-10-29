@@ -1,6 +1,9 @@
 import express from 'express';
-import 'dotenv/config'; 
+import 'dotenv/config';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
@@ -11,46 +14,54 @@ import postRoutes from "./routes/post.route.js";
 import newsRoutes from "./routes/news.route.js";
 import contestRoutes from "./routes/contest.route.js";
 
-import cors from 'cors';
-import http from 'http';
-import { Server } from 'socket.io';
-
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors({
-  origin: [
-    "http://localhost:5173"          // Local frontend        // Production frontend
-  ],
-  credentials: true, // ✅ send cookies
-}));
+// ✅ Allowed origins (local + production)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://spektra-two.vercel.app"
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-
-// Middlewares
-app.use(express.json());
 app.use(cookieParser());
 
-// Routes
+// ✅ Routes
 app.get("/", (req, res) => {
-  res.send("API is working!");
+  res.send("✅ API is working and connected to frontend!");
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/chat", chatRoutes); 
+app.use("/api/chat", chatRoutes);
 app.use("/api/communities", communityRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/contests", contestRoutes);
 
+// ✅ Socket.io setup
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", credentials: true },
+  cors: {
+    origin: allowedOrigins,
+    credentials: true,
+  },
 });
 
-// Socket.io real-time chat
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -73,8 +84,8 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server and connect DB
+// ✅ Start server + connect DB
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
   connectDB();
 });
