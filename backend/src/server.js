@@ -99,50 +99,60 @@ import { Server } from 'socket.io';
 import authRoutes from './routes/auth.route.js';
 import userRoutes from './routes/user.route.js';
 import chatRoutes from './routes/chat.route.js';
-import { connectDB } from './lib/db.js';
 import communityRoutes from "./routes/community.route.js";
 import postRoutes from "./routes/post.route.js";
 import newsRoutes from "./routes/news.route.js";
 import contestRoutes from "./routes/contest.route.js";
+import { connectDB } from './lib/db.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// -------------------------
-// CORS ORIGIN LOADING
-// -------------------------
-const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || "http://localhost:5173";
-const allowedOrigins = ALLOWED_ORIGINS.split(",").map(origin => origin.trim());
+/* -----------------------------
+   1. ALLOWED ORIGINS
+----------------------------- */
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map(o => o.trim());
 
-// -------------------------
-// CORS SETUP
-// -------------------------
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // allow server-to-server requests
+console.log("Allowed Origins:", allowedOrigins);
 
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+/* -----------------------------
+   2. CORS CONFIG (FIXED)
+----------------------------- */
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow server-to-server, Postman, Thunder, etc.
+    if (!origin) return callback(null, true);
 
-// Middleware
+    // Allow only whitelisted origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.log("❌ CORS BLOCKED:", origin);
+    return callback(new Error("Not allowed by CORS: " + origin));
+  },
+  credentials: true,
+}));
+
+/* -----------------------------
+   3. BODY PARSERS (REQUIRED BEFORE ROUTES)
+----------------------------- */
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Test route
+/* -----------------------------
+   4. TEST ROUTE
+----------------------------- */
 app.get("/", (req, res) => {
-  res.send("✅ Spektra API is running and connected to frontend!");
+  res.send("✅ Spektra API is running!");
 });
 
-// Routes
+/* -----------------------------
+   5. API ROUTES
+----------------------------- */
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
@@ -151,8 +161,11 @@ app.use("/api/posts", postRoutes);
 app.use("/api/news", newsRoutes);
 app.use("/api/contests", contestRoutes);
 
-// HTTP server + Socket.io
+/* -----------------------------
+   6. SOCKET.IO SETUP
+----------------------------- */
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -160,18 +173,17 @@ const io = new Server(server, {
   },
 });
 
-// WebSocket
 io.on("connection", (socket) => {
   console.log("🟢 User connected:", socket.id);
 
   socket.on("joinRoom", (communityId) => {
     socket.join(communityId);
-    console.log(`User ${socket.id} joined room: ${communityId}`);
+    console.log(`User ${socket.id} joined room ${communityId}`);
   });
 
   socket.on("leaveRoom", (communityId) => {
     socket.leave(communityId);
-    console.log(`User ${socket.id} left room: ${communityId}`);
+    console.log(`User ${socket.id} left room ${communityId}`);
   });
 
   socket.on("sendMessage", (message) => {
@@ -183,7 +195,9 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server + connect DB
+/* -----------------------------
+   7. START SERVER + CONNECT DB
+----------------------------- */
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   connectDB();
